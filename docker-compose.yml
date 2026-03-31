@@ -15,8 +15,12 @@ services:
   # Microservicio de Usuario
   servicio-user:
     build: 
-      # Ajustamos a la ruta real dentro de 'servicios'
-      context: ./servicios/usuario 
+      
+      context: .
+      dockerfile: ./servicios/usuario/Dockerfile
+      volumes:
+        - ./servicios/usuario:/app
+        - ./shared:/app/shared
     container_name: servicio-user
     ports:
       - "5000:5000"

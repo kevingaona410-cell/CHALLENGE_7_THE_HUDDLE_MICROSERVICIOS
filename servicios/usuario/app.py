@@ -2,11 +2,11 @@ from flask import Flask, request, jsonify
 import os, uuid, psycopg2, psycopg2.extras  
 
 # Manejo de resiliencia 
-from resiliencia.retry import retry, parar_despues_de_intentos, esperar_exponencialmente 
-from resiliencia.circuit_breaker import CircuitBreaker
+from shared.resiliencia.retry import retry, parar_despues_de_intentos, esperar_exponencialmente
+from shared.resiliencia.circuit_breaker import CircuitBreaker
 
-# Módulo de seguridad
-import seguridad
+# Importar la seguridad
+import shared.seguridad as seguridad
 
 app = Flask(__name__)
 DB_URL = os.getenv("DATABASE_URL")
