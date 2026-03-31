@@ -1,0 +1,30 @@
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: postgres-db
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=pass
+      - POSTGRES_DB=usuario_db
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d usuario_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Microservicio de Usuario
+  servicio-user:
+    build: 
+      # Ajustamos a la ruta real dentro de 'servicios'
+      context: ./servicios/usuario 
+    container_name: servicio-user
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_APP=app.py
+      - DATABASE_URL=postgresql://user:pass@db:5432/usuario_db
+    volumes:
+      - ./servicios/usuario:/app
+    depends_on:
+      db:
+        condition: service_healthy

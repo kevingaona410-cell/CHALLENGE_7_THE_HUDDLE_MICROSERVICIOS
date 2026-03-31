@@ -1,0 +1,12 @@
+.venv
+# Ignorar archivos generados
+*.pyc
+__pycache__/
+.env
+
+# Ignorar base de datos 
+servicios/usuarios/usuarios.db
+
+servicios/inventario/inventario.db
+
+servicios/pedidos/pedidos.db
