@@ -123,24 +123,66 @@ def agregar_producto(token):
     except Exception as e:
         print(f"Error al agregar el producto: {e}")
 
-def eliminar_producto(token):
-    print("Este servicio no está disponible en este momento. Por favor, inténtalo más tarde.\n")
-    return None
+def realizar_pedido(token):
+    print("\n--- Realizar Pedido ---")
+    producto_id = int(input("ID del producto a pedir: "))
+    cantidad = int(input("Cantidad a pedir: "))
+
+    try:
+        respuesta = requests.post(f"{URL_SERVICIO_PEDIDOS}/orders",
+                                  json={"producto_id": producto_id, "cantidad": cantidad},
+                                  headers={"Authorization": f"Bearer {token}"})
+        
+        # Si el pedido se realiza exitosamente, mostrar el mensaje de éxito
+        if respuesta.status_code >= 200 and respuesta.status_code < 300:
+            try:
+                print(f"Exito: {respuesta.json()} | Codigo: {respuesta.status_code}")
+            except:
+                print(f"Exito: Pedido creado | Codigo: {respuesta.status_code}")
+        # Si hay un error, mostrar el mensaje de error
+        else:
+            try:
+                print(f"Error: {respuesta.json()} | Codigo: {respuesta.status_code}")
+            except:
+                print(f"Error: {respuesta.text} | Codigo: {respuesta.status_code}")
+    except Exception as e:
+        print(f"Error al realizar el pedido: {e}")
+
+def ver_pedidos(token):
+    # Enviar una solicitud GET al servicio de pedidos
+    try:
+        respuesta = requests.get(f"{URL_SERVICIO_PEDIDOS}/orders", 
+                                    headers={"Authorization": f"Bearer {token}"})
+        # Si la solicitud es exitosa, mostrar los pedidos realizados por el usuario
+        if respuesta.status_code == 200:
+            pedidos = respuesta.json()
+            print("\n" + "="*30)
+            print("   PEDIDOS REALIZADOS")
+            print("="*30)
+            for p in pedidos["Pedidos"]:
+                print(f"ID: {p['id']} | Producto: {p['producto_id']} | Cantidad: {p['cantidad']} | Estado: {p['estado']}")
+        # Si hay un error, mostrar el mensaje de error
+        else: 
+            print(f"Error: {respuesta.json()}\n codigo {respuesta.status_code}")
+    except Exception as e:
+        print(f"Error al obtener los pedidos: {e}")
+
 
 # Funcion para mostrar el menu inventario, pero solo si el usuario ha iniciado sesión correctamente
 def menu_inventario(token):
     while True:
         print("\n=== Inventario ===")
-        print("1. Ver productos | 2. Agregar producto | 3. Eliminar producto | 4. Volver al menú principal")
+        print("1. Ver productos | 2. Agregar producto | 3. Realizar Pedido | 4. Ver pedidos | 5. Salir")
         opcion = input("\nSeleccioná: ")
         if opcion == "1": 
             ver_productos(token)
         elif opcion == "2": 
             agregar_producto(token)
         elif opcion == "3": 
-            eliminar_producto(token)
-        elif opcion == "4": break
-
+            realizar_pedido(token)
+        elif opcion == "4": 
+            ver_pedidos(token)
+        elif opcion == "5": break
     
 # Función para mostrar el menú principal y manejar las opciones del usuario
 def menu_principal():

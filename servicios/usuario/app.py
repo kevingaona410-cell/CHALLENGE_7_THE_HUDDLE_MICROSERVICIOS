@@ -111,7 +111,8 @@ def login():
         # Si el usuario existe y la contraseña es correcta, generar un token de autenticación
         if seguridad.checkear_contraseña(usuario["contraseña"], dato["contraseña"]):
             token = seguridad.generar_token(usuario["id"])
-            return jsonify ({"Exito": "Bienvenido", "token": token}), 200
+            # devolvemos el token y mostramos el nombre del usuario en el mensaje de exito
+            return jsonify ({"Exito": f"Bienvenido {usuario['nombre']}", "token": token}), 200
         
         # Si la contraseña es incorrecta, devolver un error
         return jsonify ({"Error" : "Credenciales invalidas"}), 401

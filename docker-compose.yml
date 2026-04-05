@@ -5,9 +5,11 @@ services:
     environment:
       - POSTGRES_USER=user
       - POSTGRES_PASSWORD=pass
-      - POSTGRES_DB=usuario_db
+      - POSTGRES_DB=postgres
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U user -d usuario_db"]
+      test: ["CMD-SHELL", "pg_isready -U user"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -39,9 +41,26 @@ services:
       - "5001:5001"
     environment:
       - FLASK_APP=app.py
-      - DATABASE_URL=postgresql://user:pass@db:5432/usuario_db # Usamos la misma DB por ahora
+      - DATABASE_URL=postgresql://user:pass@db:5432/inventario_db
     volumes:
       - ./servicios/inventario:/app
+      - ./shared:/app/shared # Compartimos la carpeta shared
+    depends_on:
+      db:
+        condition: service_healthy
+
+  servicio-pedidos:
+    build: 
+      context: .
+      dockerfile: ./servicios/pedidos/Dockerfile
+    container_name: servicio-pedidos
+    ports:
+      - "5002:5002"
+    environment:
+      - FLASK_APP=app.py
+      - DATABASE_URL=postgresql://user:pass@db:5432/pedidos_db
+    volumes:
+      - ./servicios/pedidos:/app
       - ./shared:/app/shared # Compartimos la carpeta shared
     depends_on:
       db:
