@@ -37,12 +37,12 @@ parar = parar_despues_de_intentos(max_intentos = 5)
 esperar = esperar_exponencialmente(base = 1)
 
 # Instanciamos el circuit_breaker
-circuit_breaker = CircuitBreaker(max_fallas =5, tiempo_reset =10, nombre = "USUARIO_DB_CB")
+circuitBreaker = CircuitBreaker(max_fallas =5, tiempo_reset =10, nombre = "USUARIO_DB_CB")
 
 
 # Envolvemos el decorador a la funcion 
 @retry(parar=parar, esperar = esperar)
-@circuit_breaker
+@circuitBreaker
 def ejecutar_db(query, params=None):
     conexion = psycopg2.connect(DB_URL)
     cursor = conexion.cursor(cursor_factory = psycopg2.extras.DictCursor)
@@ -119,5 +119,5 @@ def login():
         return jsonify({"error": "Error interno o base de datos caida"}), 503
 
 if __name__ == "__main__":
-    crear_db()  # Crear tabla antes de iniciar
+    crear_db()  
     app.run(host= "0.0.0.0", port= 5000, debug=True)

@@ -15,12 +15,8 @@ services:
   # Microservicio de Usuario
   servicio-user:
     build: 
-      
       context: .
       dockerfile: ./servicios/usuario/Dockerfile
-      volumes:
-        - ./servicios/usuario:/app
-        - ./shared:/app/shared
     container_name: servicio-user
     ports:
       - "5000:5000"
@@ -29,6 +25,24 @@ services:
       - DATABASE_URL=postgresql://user:pass@db:5432/usuario_db
     volumes:
       - ./servicios/usuario:/app
+      - ./shared:/app/shared # Compartimos la carpeta shared
+    depends_on:
+      db:
+        condition: service_healthy
+  # Microservicio de Inventario
+  servicio-inventario:
+    build: 
+      context: .
+      dockerfile: ./servicios/inventario/Dockerfile
+    container_name: servicio-inventario
+    ports:
+      - "5001:5001"
+    environment:
+      - FLASK_APP=app.py
+      - DATABASE_URL=postgresql://user:pass@db:5432/usuario_db # Usamos la misma DB por ahora
+    volumes:
+      - ./servicios/inventario:/app
+      - ./shared:/app/shared # Compartimos la carpeta shared
     depends_on:
       db:
         condition: service_healthy
