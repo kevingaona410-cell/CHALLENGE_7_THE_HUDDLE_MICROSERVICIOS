@@ -9,18 +9,15 @@ SECRET_KEY = os.getenv("SECRET_KEY", "tu_clave_secreta_aqui")
 
 # Funcion para hashear la contraseña usando bcrypt
 def hashear_contraseña(contraseña):
-    """Hashear la contraseña con bcrypt"""
     return bcrypt.hashpw(contraseña.encode(
         ), bcrypt.gensalt()).decode()
 
 # Funcion para verificar la contraseña hasheada
 def checkear_contraseña(contraseña_hasheada, contraseña):
-    """Verificar que la contraseña coincida con el hash bcrypt"""
     return bcrypt.checkpw(contraseña.encode(), contraseña_hasheada.encode())
 
 # Funcion para gnerar un token JWT para un usuario autenticado
 def generar_token(usuario_id):
-    """Generar un token JWT"""
     ahora = datetime.utcnow()
     payload = {
         "usuario_id": usuario_id,
@@ -31,7 +28,6 @@ def generar_token(usuario_id):
 
 # Funcion para verificar un token JWT y extraer la información del usuario
 def verificar_token(token):
-    """Verificar que el token sea válido"""
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
         return payload
