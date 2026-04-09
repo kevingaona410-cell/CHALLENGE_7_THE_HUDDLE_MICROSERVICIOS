@@ -11,6 +11,9 @@ import shared.seguridad as seguridad
 app = Flask(__name__)
 DB_URL = os.getenv("DATABASE_URL")
 
+# En Docker, DOCKER_ENV=true. Si no está definido, asumimos localhost
+MODO_DOCKER = os.environ.get("DOCKER_ENV", "").lower() == "true"
+
 # Crear tabla de productos si no existe
 def crear_db():
     try:
@@ -194,6 +197,26 @@ def revisar_stock(producto):
             return jsonify({"Error": "Producto no encontrado"}), 404
     except Exception as e:
         return jsonify({"Error": "Servicio de datos no disponible temporalmente"}), 503
+
+# ====== ENDPOINTS INTERNOS (sin autenticación - para comunicación entre servicios) ======
+
+# Endpoint interno para obtener stock de un producto por ID
+@app.route("/internal/stock/<int:producto_id>", methods=["GET"])
+def obtener_stock_interno(producto_id):
+    """Endpoint sin autenticación para que Pedidos consulte stock"""
+    try:
+        query = "SELECT id, stock FROM productos WHERE id = %s"
+        resultado = ejecutar_db(query, (producto_id,))
+        
+        if resultado:
+            return jsonify({
+                "stock": resultado[0]["stock"],
+                "disponible": resultado[0]["stock"] > 0
+            }), 200
+        else:
+            return jsonify({"Error": "Producto no encontrado"}), 404
+    except Exception as e:
+        return jsonify({"Error": "Servicio de datos no disponible"}), 503
 
 
 if __name__ == "__main__":

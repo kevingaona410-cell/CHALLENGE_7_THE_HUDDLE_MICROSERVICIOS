@@ -11,14 +11,17 @@ import shared.seguridad as seguridad
 app = Flask(__name__)
 DB_URL = os.getenv("DATABASE_URL")
 
-# Crear tabla de usuarios si no existe
+# En Docker, DOCKER_ENV=true. Si no está definido, asumimos localhost
+MODO_DOCKER = os.environ.get("DOCKER_ENV", "").lower() == "true"
+
+# Crear tabla de users si no existe
 def crear_db():
     try:
         conn = psycopg2.connect(DB_URL)
         cursor = conn.cursor()
         
         cursor.execute("""
-            CREATE TABLE IF NOT EXISTS usuarios (
+            CREATE TABLE IF NOT EXISTS users (
                 id SERIAL PRIMARY KEY,
                 nombre VARCHAR(100) NOT NULL UNIQUE,
                 contraseña VARCHAR(255) NOT NULL
@@ -28,7 +31,7 @@ def crear_db():
         conn.commit()
         cursor.close()
         conn.close()
-        print("✓ Tabla 'usuarios' creada/verificada correctamente")
+        print("✓ Tabla 'users' creada/verificada correctamente")
     except Exception as e:
         print(f"Error al crear la tabla: {e}")
 
@@ -72,9 +75,9 @@ def registro():
     
     try:
         # Verificar si el usuario ya existe
-        usuarios_existentes = ejecutar_db("SELECT * FROM usuarios WHERE nombre = %s", (dato["nombre"],))
+        users_existentes = ejecutar_db("SELECT * FROM users WHERE nombre = %s", (dato["nombre"],))
         
-        if usuarios_existentes:                
+        if users_existentes:                
             # Si el usuario ya existe, devolver un error
             return jsonify({"error" : "El usuario ya existe"}), 409
         
@@ -82,7 +85,7 @@ def registro():
         contraseña_hash = seguridad.hashear_contraseña(dato["contraseña"])     
         
         # Insertar el nuevo usuario en la base de datos
-        ejecutar_db("INSERT INTO usuarios (nombre, contraseña) VALUES (%s, %s)", 
+        ejecutar_db("INSERT INTO users (nombre, contraseña) VALUES (%s, %s)", 
                     (dato["nombre"], contraseña_hash))
         
         return jsonify({"Exito": "Usuario registrado correctamente"}), 201
@@ -100,13 +103,13 @@ def login():
     
     try:
         # Verificar las credenciales del usuario
-        usuarios = ejecutar_db("SELECT * FROM usuarios WHERE nombre = %s", 
+        users = ejecutar_db("SELECT * FROM users WHERE nombre = %s", 
                                    (dato["nombre"],))
         
-        if not usuarios:
+        if not users:
             return jsonify({"Error" : "Credenciales invalidas"}), 401
         
-        usuario = usuarios[0]
+        usuario = users[0]
         
         # Si el usuario existe y la contraseña es correcta, generar un token de autenticación
         if seguridad.checkear_contraseña(usuario["contraseña"], dato["contraseña"]):

@@ -5,7 +5,6 @@ services:
     environment:
       - POSTGRES_USER=user
       - POSTGRES_PASSWORD=pass
-      - POSTGRES_DB=postgres
     volumes:
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
@@ -25,6 +24,8 @@ services:
     environment:
       - FLASK_APP=app.py
       - DATABASE_URL=postgresql://user:pass@db:5432/usuario_db
+      - DOCKER_ENV=true
+      - SECRET_KEY=microservicio_huddle_secret_key_challenge_7_2026_seguro
     volumes:
       - ./servicios/usuario:/app
       - ./shared:/app/shared # Compartimos la carpeta shared
@@ -42,6 +43,8 @@ services:
     environment:
       - FLASK_APP=app.py
       - DATABASE_URL=postgresql://user:pass@db:5432/inventario_db
+      - DOCKER_ENV=true
+      - SECRET_KEY=microservicio_huddle_secret_key_challenge_7_2026_seguro
     volumes:
       - ./servicios/inventario:/app
       - ./shared:/app/shared # Compartimos la carpeta shared
@@ -59,6 +62,8 @@ services:
     environment:
       - FLASK_APP=app.py
       - DATABASE_URL=postgresql://user:pass@db:5432/pedidos_db
+      - DOCKER_ENV=true
+      - SECRET_KEY=microservicio_huddle_secret_key_challenge_7_2026_seguro
     volumes:
       - ./servicios/pedidos:/app
       - ./shared:/app/shared # Compartimos la carpeta shared

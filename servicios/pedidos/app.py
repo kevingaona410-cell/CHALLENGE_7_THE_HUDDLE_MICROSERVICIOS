@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify
-import os, psycopg2, psycopg2.extras
+import os, psycopg2, psycopg2.extras, requests
 
 # Manejo de resiliencia
 from shared.resiliencia.retry import retry, parar_despues_de_intentos, esperar_exponencialmente
@@ -10,6 +10,9 @@ import shared.seguridad as seguridad
 
 app = Flask(__name__)
 DB_URL = os.getenv("DATABASE_URL")
+# En Docker, DOCKER_ENV=true. Si no está definido, asumimos localhost
+MODO_DOCKER = os.environ.get("DOCKER_ENV", "").lower() == "true"
+URL_SERVICIO_INVENTARIO = "http://servicio-inventario:5001" if MODO_DOCKER else "http://localhost:5001"
 
 #crear tabla de pedidos si no existe
 def crear_db():
@@ -90,6 +93,14 @@ def crear_pedido():
     if not isinstance(cantidad, int) or cantidad <= 0:
         return jsonify({"Error": "La cantidad debe ser un número entero positivo"}), 400
     
+    stock = verificar_stock(producto_id)
+
+    if stock is None:
+        return jsonify({"Error": "Producto no encontrado en inventario"}), 404
+
+    if stock < cantidad:
+        return jsonify({"Error": "Stock insuficiente"}), 400
+        
     # Intentar crear el pedido en la base de datos
     try: 
         # Insertar el nuevo pedido en la base de datos
@@ -136,6 +147,29 @@ def ver_pedidos():
     except Exception as e: 
         return jsonify({"Error": "Servicio de datos no disponible temporalmente"}), 503
 
+@retry(parar=parar, esperar=esperar)
+@circuitBreaker
+def verificar_stock(producto_id, token):
+    """Verifica stock en Inventario (llamada directa servicio a servicio)"""
+    try:
+        respuesta = requests.get(
+            f"{URL_SERVICIO_INVENTARIO}/internal/stock/{producto_id}",
+            timeout=3
+        )
+
+        if respuesta.status_code != 200:
+            print(f"❌ Error verificando stock: {respuesta.status_code}")
+            return None
+
+        datos = respuesta.json()
+        return datos.get("stock")
+    
+    except Exception as e:
+        print(f"❌ Error comunicando con Inventario: {e}")
+        raise
+
+    except Exception:
+        raise
 
 if __name__ == "__main__":
     crear_db()

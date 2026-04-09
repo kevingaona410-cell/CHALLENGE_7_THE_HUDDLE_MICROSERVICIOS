@@ -3,7 +3,7 @@ import bcrypt
 import os
 from datetime import datetime, timedelta
 
-SECRET_KEY = os.getenv("SECRET_KEY", "tu_clave_secreta_aqui")
+SECRET_KEY = os.getenv("SECRET_KEY", "microservicio_huddle_secret_key_challenge_7_2026_seguro")
 
 # Funciones de seguridad para el servicio de usuario
 
